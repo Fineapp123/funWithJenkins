@@ -1,12 +1,18 @@
-FROM node:18
+# Use official Python image
+FROM python:3.10-slim
 
+# Set working directory
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm install
+# Copy requirements file and install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy the rest of the app files
 COPY . .
 
-EXPOSE 3000
+# Expose the port Flask runs on
+EXPOSE 5000
 
-CMD ["node", "index.js"]
+# Run the application
+CMD ["python", "app.py"]
