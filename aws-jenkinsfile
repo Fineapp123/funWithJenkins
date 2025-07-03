@@ -1,0 +1,48 @@
+pipeline {
+    agent any
+
+    environment {
+        AWS_REGION = 'us-east-2'
+        IMAGE_NAME = 'test-flask'
+        REPO_NAME = 'jenkinstest'
+        IMAGE_TAG = 'latest'
+        ECR_REGISTRY = '902326548146.dkr.ecr.us-east-2.amazonaws.com'
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/Parth2k3/test-flask/'
+            }
+        }
+
+        stage('Login to ECR') {
+            steps {
+                withAWS(region: env.AWS_REGION, credentials: 'AWS_ECR') {
+                    powershell """
+                        aws ecr get-login-password --region $env:AWS_REGION |
+                        docker login --username AWS --password-stdin https://${env:ECR_REGISTRY}
+                    """
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                powershell """
+                    docker build -t $env:IMAGE_NAME:$env:IMAGE_TAG .
+                    docker tag $env:IMAGE_NAME:$env:IMAGE_TAG $env:ECR_REGISTRY/$env:REPO_NAME:$env:IMAGE_TAG
+                """
+            }
+        }
+
+        stage('Push to ECR') {
+            steps {
+                powershell """
+                    docker push $env:ECR_REGISTRY/$env:REPO_NAME:$env:IMAGE_TAG
+                """
+            }
+        }
+    }
+}
