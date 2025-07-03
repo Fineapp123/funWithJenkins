@@ -2,20 +2,24 @@ pipeline {
     agent any
 
     stages {
-        stage('Build') {
+        stage('Checkout Code') {
             steps {
-                echo 'Building application'
+                git 'https://github.com/Fineapp123/funWithJenkins/'
             }
-        }
-		
-		stage('test'){
+        }		
+		stage('Build'){
 			steps{
-				echo 'Testing testing 123'
+				sh 'echo "Building app"'
 			}
 		}
-		stage('deploy'){
+	    stage('Test'){
 			steps {
-			 echo 'deployapp'   
+			 sh 'echo "Running Tests"' 
+			}
+			}
+		stage('Deploy'){
+			steps {
+			 sh 'echo "Deploying"'  
 			}
 			}
     }
