@@ -1,35 +1,33 @@
 pipeline {
     agent any
 
+    environment {
+        IMAGE_NAME = 'sundial778/test-flask'
+    }
+
     stages {
-        stage('Checkout Code') {
+        stage('Checkout') {
             steps {
-                git 'https://github.com/Fineapp123/funWithJenkins/'
+                git branch: 'main', url: 'https://github.com/Parth2k3/test-flask/'
             }
-        }		
-		stage('Build'){
-			steps{
-				sh 'echo "Building app"'
-			}
-		}
-	    stage('Test'){
-			steps {
-			 sh 'echo "Running Tests"' 
-			}
-			}
-		stage('Deploy'){
-			steps {
-			 sh 'echo "Deploying"'  
-			}
-			}
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                bat "docker build -t %IMAGE_NAME%:latest ."
+            }
+        }
+
+        stage('Push to Docker Hub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'Docker', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    bat """
+                        echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
+                        docker push %IMAGE_NAME%:latest
+                        docker logout
+                    """
+                }
+            }
+        }
     }
 }
-post{
-	success{
-		bat 'echo "Build succesful"'
-	}
-	failure{
-		bat 'echo "Build failed"'
-	}
-}
-
